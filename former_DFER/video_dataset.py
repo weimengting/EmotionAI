@@ -10,8 +10,7 @@ import pandas as pd
 import os
 from typing import List, Tuple
 
-# 需要知道每一个数字的具体类别是什么,为什么一个有6类，一个有7类
-# pose 是2,3,4，5,6,7；spon是2,3,4,5,6,7,8
+#
 class VideoDataset(Dataset):
     def __init__(
             self,
@@ -28,6 +27,8 @@ class VideoDataset(Dataset):
         self.sample_rate = sample_rate
         self.sign = sign
         self.binary_class_dict = {'pose': 0, 'spon': 1}
+        self.multi_class_dict = {'0_2': 0, '0_3': 1, '0_4': 2, '0_5': 3, '0_6': 4, '0_7': 5,
+                                 '1_2': 6, '1_3': 7, '1_4': 8, '1_5': 9, '1_6': 10, '1_7': 11}
 
         self.data_lst, self.path_lst = self.generate_data_lst()
 
@@ -43,38 +44,19 @@ class VideoDataset(Dataset):
             for video_dir in sorted(video_folder.iterdir()):
                 res = self.is_valid(video_dir, prefix)
                 if res[0]:
-                    data_lst[video_dir] = res[1]
+                    data_lst[video_dir] = res[1] # add labels here
                     path_lst.append(video_dir)
 
         return data_lst, path_lst
-
+    # need to modify
     def is_valid(self, video_dir, prefix):
         if self.sign == 'binary':
-            return True, self.binary_class_dict[prefix]
-        # check if the label is a single label
+            return True, prefix
+
         elements = str(video_dir).split('/')[-1].split('_')
-        if len(elements) != 5:
-            return False, None
-        else:
-            label = int(elements[-1])
-            return True, label
-        # subject, form, trial, line = str(video_dir).split('/')[-1].split('_')
-        # trial_num = form + '_' + trial
-        # filtered_df = df[(df['Subject'].astype('str') == subject) &
-        #                  (df['Trial Name'].astype('str') == trial_num) &
-        #                  (df['Line Number'].astype('str') == line)]
-        #
-        # if not filtered_df.empty:
-        #     matching_value = filtered_df['Matching Values'].values[0]
-        #     if isinstance(matching_value, str): # for spon
-        #         if len(matching_value) == 1:
-        #             return True, int(matching_value) - 2   # the matching values are from 2 to 7 for pose and to 8 for spon
-        #         else:
-        #             return False, 100000
-        #     else: # for pose
-        #         return True, matching_value - 2
-        # else:
-        #     return False, 100000
+        label = elements[-1]
+        binary_label = self.binary_class_dict[prefix]
+        return True, str(binary_label) + '_' + label
 
 
     def setup_transform(self):
@@ -121,7 +103,7 @@ class VideoDataset(Dataset):
 
         # tgt frames indexes
         video_length = len(list(video_dir.iterdir()))
-        clip_idxes = self.set_clip_idx(video_length)  # 采样一段视频出来
+        clip_idxes = self.set_clip_idx(video_length)  # sample a video clip
 
         img_path_lst = sorted([img.name for img in video_dir.glob("*.jpg")])
         tgt_vidpil_lst = []
@@ -138,21 +120,25 @@ class VideoDataset(Dataset):
         label = self.data_lst[video_dir]
         # print(tgt_vid.shape) [24, 3, 512, 512]
         # print(tgt_guid_vid.shape) [24, 9, 512, 512]
-
+        if self.sign == 'binary':
+            label = self.binary_class_dict[label]
+        else:
+            label = self.multi_class_dict[label]
         return tgt_vid, label  # [16, 3, 256, 256]
 
 
 if __name__ == '__main__':
     train_dataset = VideoDataset(
-        video_folders=["/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/verified_lable/pose_cropped",
-                       "/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/verified_lable/spon_cropped"],
+        video_folders=["/home/mengting/Desktop/EmotionAI/data/pose_cropped",
+                       "/home/mengting/Desktop/EmotionAI/data/spon_cropped"
+                       ],
         image_size=256,
-        sign='multi'
+        sign='binary'
     )
     print(len(train_dataset))
-    # for i in range(train_dataset.__len__()):
-    #     tgt, label = train_dataset.__getitem__(i)
-    #     print(tgt.shape)
+    for i in range(train_dataset.__len__()):
+        tgt, label = train_dataset.__getitem__(i)
+        print(label)
 
     # label_path = '/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/verified_lable/SPFEED_Beha_Anno_spon_validcut.xlsx'
     # df = pd.read_excel(label_path)
