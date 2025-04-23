@@ -10,7 +10,24 @@ import pandas as pd
 import os
 from typing import List, Tuple
 
-#
+
+
+FOLDS_MAP = {1: [113, 114, 115, 116, 117], 2: [118, 119, 120, 121, 123, 124], 3: [125, 127, 128, 129, 130],
+             4: [131, 132, 135, 136, 137], 5: [138, 139, 140, 141, 142], 6: [143, 144, 145, 146, 147],
+             7: [148, 149, 150, 152, 154], 8: [155, 156, 157, 158, 159], 9: [160, 161, 162, 163, 164],
+             10: [165, 166, 167, 169, 170]}
+
+
+def obtain_subjects(fold):
+    train_subjects = []
+    test_subjects = []
+    for key, value in FOLDS_MAP.items():
+        if key != fold:
+            train_subjects.extend(value)
+        else:
+            test_subjects.extend(value)
+    return train_subjects, test_subjects
+
 class VideoDataset(Dataset):
     def __init__(
             self,
@@ -19,6 +36,7 @@ class VideoDataset(Dataset):
             sample_frames: int = 16,
             sample_rate: int = 8,
             sign: str = 'binary',
+            sublst: List[int] = None,
     ):
         super().__init__()
         self.video_folders = video_folders
@@ -29,9 +47,9 @@ class VideoDataset(Dataset):
         self.binary_class_dict = {'pose': 0, 'spon': 1}
         self.multi_class_dict = {'0_2': 0, '0_3': 1, '0_4': 2, '0_5': 3, '0_6': 4, '0_7': 5,
                                  '1_2': 6, '1_3': 7, '1_4': 8, '1_5': 9, '1_6': 10, '1_7': 11}
+        self.sublst = sublst
 
         self.data_lst, self.path_lst = self.generate_data_lst()
-
         self.pixel_transform = self.setup_transform()
 
     def generate_data_lst(self):
@@ -39,21 +57,21 @@ class VideoDataset(Dataset):
         data_lst = {}
         for folder in self.video_folders:
             video_folder = Path(folder)
-            prefix = str(video_folder).split('/')[-1].split('_')[0]
-
+            prefix = str(video_folder).split('/')[-1].split('_')[0]  # pose or spon here
             for video_dir in sorted(video_folder.iterdir()):
-                res = self.is_valid(video_dir, prefix)
-                if res[0]:
-                    data_lst[video_dir] = res[1] # add labels here
-                    path_lst.append(video_dir)
+                elements = str(video_dir).split('/')[-1].split('_')
+                if int(elements[0]) in self.sublst:
+                    res = self.is_valid(prefix, elements)
+                    if res[0]:
+                        data_lst[video_dir] = res[1] # add labels here
+                        path_lst.append(video_dir)
 
         return data_lst, path_lst
     # need to modify
-    def is_valid(self, video_dir, prefix):
+    def is_valid(self, prefix, elements):
         if self.sign == 'binary':
             return True, prefix
 
-        elements = str(video_dir).split('/')[-1].split('_')
         label = elements[-1]
         binary_label = self.binary_class_dict[prefix]
         return True, str(binary_label) + '_' + label
@@ -128,17 +146,22 @@ class VideoDataset(Dataset):
 
 
 if __name__ == '__main__':
+    train_subjects, test_subjects = obtain_subjects(1)
+    print(train_subjects)
+    print(test_subjects)
     train_dataset = VideoDataset(
-        video_folders=["/home/mengting/Desktop/EmotionAI/data/pose_cropped",
-                       "/home/mengting/Desktop/EmotionAI/data/spon_cropped"
+        video_folders=["/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/added/aligned/pose_cropped",
+                       "/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/added/aligned/spon_cropped"
                        ],
-        image_size=256,
-        sign='binary'
+        image_size=224,
+        sign='multi',
+        sublst=test_subjects,
     )
-    print(len(train_dataset))
-    for i in range(train_dataset.__len__()):
-        tgt, label = train_dataset.__getitem__(i)
-        print(label)
+    # print(len(train_dataset))
+    # for i in range(train_dataset.__len__()):
+    #     tgt, label = train_dataset.__getitem__(i)
+    #     print(label)
+
 
     # label_path = '/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/verified_lable/SPFEED_Beha_Anno_spon_validcut.xlsx'
     # df = pd.read_excel(label_path)
