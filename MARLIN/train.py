@@ -31,6 +31,15 @@ def main(args):
             video_folders=["/home/hq/Documents/data/SPFEED dataset/pose_cropped",
                            "/home/hq/Documents/data/SPFEED dataset/spon_cropped"
                            ],
+            # video_folders=["/home/hq/Documents/data/SPFEED dataset/renamed_by_mengting/pose_cropped",
+            #                "/home/hq/Documents/data/SPFEED dataset/renamed_by_mengting/spon_cropped"
+            #                ],
+            video_folders=["/scratch/project_462000772/FaceDatasets/SPFeed/pose_cropped",
+                           "/scratch/project_462000772/FaceDatasets/SPFeed/spon_cropped"
+                           ],
+
+
+
             image_size=224,
             sign=args.sign,
             sublst=train_subjects,
@@ -90,7 +99,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--btz", type=int, default=8)
+    parser.add_argument("--btz", type=int, default=16)
     parser.add_argument("--index", type=int, default=1) # which fold
     parser.add_argument("--sign", type=str, default="multi") # multi or binary
     parser.add_argument("--epochs", type=int, default=100)  # total epochs
