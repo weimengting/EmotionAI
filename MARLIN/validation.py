@@ -1,8 +1,8 @@
 import torch
 import torchvision.transforms as transforms
 from sklearn.metrics import f1_score
-from former_DFER.video_dataset import VideoDataset, obtain_subjects
-from former_DFER.models.ST_Former import GenerateModel
+from video_dataset import VideoDataset, obtain_subjects
+from model import Finetune_Marlin as GenerateModel
 import os
 import argparse
 import logging
@@ -17,10 +17,9 @@ def main(args):
 
     train_subjects, test_subjects = obtain_subjects(args.index)
     test_dataset = VideoDataset(
-        video_folders=[
-            "/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/added/aligned/pose_cropped",
-            "/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/added/aligned/spon_cropped"
-            ],
+        video_folders=["/home/hq/Documents/data/SPFEED dataset/pose_cropped",
+                        "/home/hq/Documents/data/SPFEED dataset/spon_cropped"
+                        ],
         image_size=224,
         sign=args.sign,
         sublst=test_subjects,
@@ -37,7 +36,7 @@ def main(args):
     else:
         raise ValueError('sign must be either "binary" or "multi"')
 
-    model = GenerateModel(num_classes=num_classes).to(device)  # 使用定义的模型，并将模型移动到GPU
+    model = GenerateModel(n_classes=num_classes).to(device)  # 使用定义的模型，并将模型移动到GPU
 
     model_save_path = './saved_models/fold_' + str(args.index)
     epoch = args.epoch
@@ -61,7 +60,8 @@ def main(args):
         for i, data in enumerate(testloader, 0):
             # 获取输入数据
             inputs, labels = data[0].to(device), data[1].to(device)
-
+            inputs = inputs.permute(0, 2, 1, 3, 4)
+            
             # 前向 + 反向 + 优化
             outputs = model(inputs)
             _, predicted = torch.max(outputs.data, 1)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--btz", type=int, default=4)
     parser.add_argument("--index", type=int, default=1)
-    parser.add_argument("--sign", type=str, default="multi")
-    parser.add_argument("--epoch", type=int, default=200)
+    parser.add_argument("--sign", type=str, default="binary")
+    parser.add_argument("--epoch", type=int, default=90)
     args = parser.parse_args()
     main(args)

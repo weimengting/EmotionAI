@@ -27,16 +27,17 @@ def main(args):
 
     train_subjects, test_subjects = obtain_subjects(args.index)
     # 加载训练集
+    
     train_dataset = VideoDataset(
-            video_folders=["/home/hq/Documents/data/SPFEED dataset/pose_cropped",
-                           "/home/hq/Documents/data/SPFEED dataset/spon_cropped"
+            video_folders=["/home/hq/Documents/data/SPFEED dataset/renamed_by_mengting/pose_cropped_with_label/pose_cropped",
+                           "/home/hq/Documents/data/SPFEED dataset/renamed_by_mengting/spon_cropped_with_label/spon_cropped"
                            ],
             # video_folders=["/home/hq/Documents/data/SPFEED dataset/renamed_by_mengting/pose_cropped",
             #                "/home/hq/Documents/data/SPFEED dataset/renamed_by_mengting/spon_cropped"
             #                ],
-            video_folders=["/scratch/project_462000772/FaceDatasets/SPFeed/pose_cropped",
-                           "/scratch/project_462000772/FaceDatasets/SPFeed/spon_cropped"
-                           ],
+            # video_folders=["/scratch/project_462000772/FaceDatasets/SPFeed/pose_cropped",
+            #                "/scratch/project_462000772/FaceDatasets/SPFeed/spon_cropped"
+            #                ],
 
 
 
