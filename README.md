@@ -19,7 +19,6 @@ You can change the arguments by setting the classification manner(binary or 12 c
 
 2. For other models, basically you only need to copy the scripts in former-DFER to other baseline scripts,
 change the model loaded, and then run again.
-3. During training, the model will be saved every 10 epochs in the same directory as the baseline sacripts. The .log
-file provides accuracy scores on the training dataset of every epoch. 
+3. During training, the model will be saved every 10 epochs in the same directory as the baseline sacripts. The .log file provides accuracy scores on the training dataset of every epoch. 
 4. For validation, load the saved model and record the performance.
 5. Note, for other baselines, names of the saved models are still need to change.
