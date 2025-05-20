@@ -2,5 +2,4 @@
 *.csv
 *.xlsx
 *__pycache__
-*.log
 *.pt
