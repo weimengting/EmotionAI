@@ -1,8 +1,8 @@
 import torch
 import torchvision.transforms as transforms
 from sklearn.metrics import f1_score
-from former_DFER.video_dataset import VideoDataset, obtain_subjects
-from former_DFER.models.ST_Former import GenerateModel
+from video_dataset import VideoDataset, obtain_subjects
+from models.ST_Former import GenerateModel
 import os
 import argparse
 import logging
@@ -10,7 +10,7 @@ import logging
 
 def main(args):
     logging.basicConfig(
-        filename=f'output_val_{args.index}.log',  # 保存的日志文件名
+        filename=f'output_val_{args.index}_{args.sign}.log',  # 保存的日志文件名
         level=logging.INFO,  # 日志等级（还可以用 DEBUG, WARNING, ERROR 等）
         format='%(asctime)s - %(levelname)s - %(message)s'  # 日志格式
     )
@@ -18,16 +18,16 @@ def main(args):
     train_subjects, test_subjects = obtain_subjects(args.index)
     test_dataset = VideoDataset(
         video_folders=[
-            "/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/added/aligned/pose_cropped",
-            "/media/mengting/Expansion/CMVS_projects/EmotionAI/SPFEED_dataset/SPFEED_dataset/added/aligned/spon_cropped"
+            "/home/mengting/projects/EmotionAI/pose_cropped",
+            "/home/mengting/projects/EmotionAI/spon_cropped"
             ],
-        image_size=224,
+        image_size=256,
         sign=args.sign,
         sublst=test_subjects,
     )
 
     testloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.btz,
-                                             shuffle=True, num_workers=4)
+                                             shuffle=False, num_workers=4)
 
     device = 'cuda'
     if args.sign == 'binary':
@@ -39,7 +39,7 @@ def main(args):
 
     model = GenerateModel(num_classes=num_classes).to(device)  # 使用定义的模型，并将模型移动到GPU
 
-    model_save_path = './saved_models/fold_' + str(args.index)
+    model_save_path = './saved_models/fold_' + str(args.index) + '_' + args.sign
     epoch = args.epoch
 
     dict_s = torch.load(os.path.join(model_save_path, 'trained_former_DFERmodel_val_' + str(epoch) + '.pth'))
